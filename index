@@ -1,0 +1,691 @@
+import React, { useState, useEffect } from 'react';
+
+// --- DATA MATERI ---
+
+const kanjiData = [
+  { kanji: '答', onyomi: 'トウ', kunyomi: 'こた.える', meaning: 'Menjawab', mnemonic: 'Bambu (竹) yang cocok/pas (合) adalah JAWABAN yang tepat.' },
+  { kanji: '考', onyomi: 'コウ', kunyomi: 'かんが.える', meaning: 'Memikirkan', mnemonic: 'Orang tua (老) sedang bertopang dagu MEMIKIRKAN sesuatu.' },
+  { kanji: '思', onyomi: 'シ', kunyomi: 'おも.う', meaning: 'Berpikir / Merasa', mnemonic: 'Pikiran tumbuh di ladang/sawah (田) dari dalam hati (心).' },
+  { kanji: '悪', onyomi: 'アク', kunyomi: 'わる.い', meaning: 'Buruk / Jelek', mnemonic: 'Hati (心) yang terkurung seperti di Asia (亜) memiliki niat BURUK.' },
+  { kanji: '暗', onyomi: 'アン', kunyomi: 'くら.い', meaning: 'Gelap', mnemonic: 'Saat matahari (日) tenggelam, hanya suara (音) yang terdengar di tempat GELAP.' },
+  { kanji: '急', onyomi: 'キュウ', kunyomi: 'いそ.ぐ', meaning: 'Buru-buru / Tergesa', mnemonic: 'Hati (心) yang terikat/terbungkus (勹) membuat kita TERGESA-GESA.' },
+  { kanji: '待', onyomi: 'タイ', kunyomi: 'ま.つ', meaning: 'Menunggu', mnemonic: 'Langkah kaki (彳) berhenti di kuil (寺) untuk MENUNGGU.' },
+  { kanji: '持', onyomi: 'ジ', kunyomi: 'も.つ', meaning: 'Membawa / Memiliki', mnemonic: 'Tangan (扌) MEMBAWA persembahan ke kuil (寺).' },
+  { kanji: '乗', onyomi: 'ジョウ', kunyomi: 'の.る', meaning: 'Naik (Kendaraan)', mnemonic: 'Orang menyeimbangkan diri NAIK di atas pohon/kayu (木).' },
+  { kanji: '降', onyomi: 'コウ', kunyomi: 'ふ.る / お.りる', meaning: 'Turun', mnemonic: 'Kaki berjalan TURUN dari sebuah bukit (阝).' },
+  { kanji: '建', onyomi: 'ケン', kunyomi: 'た.てる', meaning: 'Membangun', mnemonic: 'Tangan meregangkan (廴) kuas (聿) untuk menggambar rencana MEMBANGUN.' },
+  { kanji: '物', onyomi: 'ブツ', kunyomi: 'もの', meaning: 'Barang / Benda', mnemonic: 'Sapi (牛) adalah salah satu BENDA/makhluk berharga zaman dulu.' },
+  { kanji: '注', onyomi: 'チュウ', kunyomi: 'そそ.ぐ', meaning: 'Menuangkan / Perhatian', mnemonic: 'Tuan (主) MEMPERHATIKAN air (氵) yang dituangkan.' },
+  { kanji: '意', onyomi: 'イ', kunyomi: '-', meaning: 'Maksud / Pikiran', mnemonic: 'Suara (音) dari hati (心) adalah MAKSUD aslimu.' },
+  { kanji: '運', onyomi: 'ウン', kunyomi: 'はこ.ぶ', meaning: 'Mengangkut / Nasib', mnemonic: 'Kereta (車) berjalan di jalan raya (辶) untuk MENGANGKUT barang.' },
+  { kanji: '動', onyomi: 'ドウ', kunyomi: 'うご.く', meaning: 'Bergerak', mnemonic: 'Sesuatu yang berat (重) butuh tenaga/kekuatan (力) untuk BERGERAK.' },
+  { kanji: '働', onyomi: 'ドウ', kunyomi: 'はたら.く', meaning: 'Bekerja', mnemonic: 'Orang (亻) yang bergerak (動) artinya sedang BEKERJA.' },
+  { kanji: '終', onyomi: 'シュウ', kunyomi: 'お.わる', meaning: 'Selesai / Berakhir', mnemonic: 'Benang (糸) rajutan untuk musim dingin (冬) akhirnya SELESAI.' },
+  { kanji: '起', onyomi: 'キ', kunyomi: 'お.きる', meaning: 'Bangun / Terjadi', mnemonic: 'Aku BERLARI (走) BANGUN dari kasur karena melihat ular (己).' },
+  { kanji: '寝', onyomi: 'シン', kunyomi: 'ね.る', meaning: 'Tidur', mnemonic: 'Di bawah atap (宀), aku merebahkan diri di ranjang untuk TIDUR.' }
+];
+
+const bunpouData = [
+  { pola: '~かもしれない', arti: 'Mungkin', contoh: '明日は雨が降るかもしれない。(Besok mungkin turun hujan.)' },
+  { pola: '~たら', arti: 'Jika / Setelah', contoh: '日本へ行ったら、寿司を食べたい。(Jika pergi ke Jepang, ingin makan sushi.)' },
+  { pola: '~なら', arti: 'Kalau begitu', contoh: '車で行くなら、私も行きます。(Kalau pergi pakai mobil, aku juga ikut.)' },
+  { pola: '~ば', arti: 'Jika (Syarat)', contoh: '薬を飲めば、良くなります。(Jika minum obat, akan baikan.)' },
+  { pola: '~はずだ', arti: 'Seharusnya / Pasti', contoh: '彼は猫が好きだから、このプレゼントを喜ぶはずだ。(Seharusnya dia senang hadiah ini karena suka kucing.)' },
+  { pola: '~やすい', arti: 'Mudah untuk...', contoh: 'このペンは書きやすいです。(Pulpen ini mudah untuk ditulis/digunakan.)' },
+  { pola: '~にくい', arti: 'Sulit untuk...', contoh: 'この魚は骨が多くて食べにくい。(Ikan ini banyak tulangnya jadi sulit dimakan.)' },
+  { pola: '~すぎる', arti: 'Terlalu...', contoh: 'きのうは寝すぎました。(Kemarin saya terlalu banyak tidur.)' },
+  { pola: '~てみる', arti: 'Mencoba melakukan', contoh: '美味しいかどうか、食べてみます。(Saya akan coba makan untuk tahu enak atau tidak.)' },
+  { pola: '~ておく', arti: 'Melakukan persiapan', contoh: '旅行の前に、ホテルを予約しておきます。(Sebelum wisata, saya booking hotel dulu.)' },
+  { pola: '~てしまう', arti: 'Selesai total / Terlanjur / Penyesalan', contoh: 'ケーキを全部食べてしまった。(Kuenya terlanjur kumakan semua.)' },
+  { pola: '~てある', arti: 'Dalam keadaan (sengaja dilakukan)', contoh: '机の上に本が置いてある。(Di atas meja telah diletakkan buku.)' },
+  { pola: '~ていく', arti: 'Mulai sekarang & seterusnya menjauh', contoh: '鳥が飛んでいきました。(Burung itu terbang menjauh.)' },
+  { pola: '~てくる', arti: 'Hingga kini / Mulai mendekat', contoh: '雨が降ってきましたね。(Hujan mulai turun ya.)' },
+  { pola: '~ように', arti: 'Agar / Supaya (Bukan keinginan sendiri)', contoh: '風邪をひかないように、コートを着ます。(Agar tidak flu, saya pakai mantel.)' },
+  { pola: '~ために', arti: 'Demi / Untuk (Keinginan sendiri)', contoh: '車を買うために、お金を貯めています。(Demi membeli mobil, saya menabung.)' },
+  { pola: '~ところだ', arti: 'Baru saja/Sedang/Akan dilakukan', contoh: '今、ご飯を食べるところです。(Sekarang, baru mau makan.)' },
+  { pola: '~ばかりだ', arti: 'Baru saja (perasaan pembicara)', contoh: 'さっき起きたばかりです。(Baru saja bangun tadi.)' },
+  { pola: '~そうだ (1)', arti: 'Sepertinya (Melihat keadaan)', contoh: '美味しそうなケーキですね。(Sepertinya kue yang enak ya.)' },
+  { pola: '~そうだ (2)', arti: 'Katanya (Kabar/Mendengar)', contoh: '天気予報によると、明日は晴れるそうです。(Menurut ramalan, besok katanya cerah.)' }
+];
+
+const kotobaData = [
+  { jp: '挨拶 (あいさつ)', arti: 'Salam', img: '🤝' },
+  { jp: '案内 (あんない)', arti: 'Panduan', img: '💁‍♀️' },
+  { jp: '意見 (いけん)', arti: 'Pendapat', img: '💬' },
+  { jp: '祈る (いのる)', arti: 'Berdoa', img: '🙏' },
+  { jp: '植える (うえる)', arti: 'Menanam', img: '🌱' },
+  { jp: '伺う (うかがう)', arti: 'Bertanya/Berkunjung (Sopan)', img: '🙇' },
+  { jp: '受ける (うける)', arti: 'Menerima/Mengikuti ujian', img: '🤲' },
+  { jp: '嘘 (うそ)', arti: 'Bohong', img: '🤥' },
+  { jp: '打つ (うつ)', arti: 'Memukul / Mengetik', img: '⌨️' },
+  { jp: '移す (うつす)', arti: 'Memindahkan', img: '📦' },
+  { jp: '腕 (うで)', arti: 'Lengan / Kemampuan', img: '💪' },
+  { jp: '裏 (うら)', arti: 'Bagian belakang', img: '🔙' },
+  { jp: '売り場 (うりば)', arti: 'Tempat penjualan', img: '🏪' },
+  { jp: '運転 (うんてん)', arti: 'Menyetir', img: '🚗' },
+  { jp: '運動 (うんどう)', arti: 'Olahraga', img: '🏃‍♂️' },
+  { jp: '枝 (えだ)', arti: 'Ranting', img: '🌿' },
+  { jp: '選ぶ (えらぶ)', arti: 'Memilih', img: '👆' },
+  { jp: '遠慮 (えんりょ)', arti: 'Sungkan / Menahan diri', img: '🙅' },
+  { jp: 'お祝い (おいわい)', arti: 'Perayaan / Hadiah', img: '🎁' },
+  { jp: 'オートバイ (おーとばい)', arti: 'Sepeda Motor', img: '🏍️' }
+];
+
+// --- DATA KUIS ---
+
+const matchQuizData = [
+  { jp: '案内', id: 1 }, { jp: '嘘', id: 2 }, { jp: '意見', id: 3 }, { jp: '運転', id: 4 }, { jp: '選ぶ', id: 5 },
+  { jp: '祈る', id: 6 }, { jp: '枝', id: 7 }, { jp: '裏', id: 8 }, { jp: '挨拶', id: 9 }, { jp: '運動', id: 10 }
+];
+const matchQuizAns = [
+  { arti: 'Panduan', id: 1 }, { arti: 'Bohong', id: 2 }, { arti: 'Pendapat', id: 3 }, { arti: 'Menyetir', id: 4 }, { arti: 'Memilih', id: 5 },
+  { arti: 'Berdoa', id: 6 }, { arti: 'Ranting', id: 7 }, { arti: 'Belakang', id: 8 }, { arti: 'Salam', id: 9 }, { arti: 'Olahraga', id: 10 }
+];
+
+const susunData = [
+  { words: ['わたし', 'は', 'ねこ', 'が', '好き'], correct: 'わたしはねこが好き', arti: 'Saya suka kucing.' },
+  { words: ['明日', '雨', 'が', '降る', 'かもしれない'], correct: '明日雨が降るかもしれない', arti: 'Besok mungkin turun hujan.' },
+  { words: ['漢字', 'を', '書く', 'こと', 'ができます'], correct: '漢字を書くことができます', arti: 'Bisa menulis kanji.' },
+  { words: ['もっと', '勉強', 'した', 'ほうがいい'], correct: 'もっと勉強したほうがいい', arti: 'Sebaiknya lebih banyak belajar.' },
+  { words: ['ケーキ', 'を', '食べて', 'しまった'], correct: 'ケーキを食べてしまった', arti: 'Kuenya terlanjur kumakan.' }
+];
+
+const rumpangData = [
+  { q: 'きのうは 疲れすぎたので、すぐ___。', options: ['寝ます', '寝ました', '寝て', '寝る'], ans: '寝ました' },
+  { q: 'このパソコンは とても___やすいです。', options: ['使う', '使って', '使い', '使った'], ans: '使い' },
+  { q: '日本へ___、お寿司を食べます。', options: ['行くなら', '行ったら', '行けば', '行くため'], ans: '行ったら' },
+  { q: 'あしたは 試験がある___です。', options: ['はず', 'そう', 'ため', 'ば'], ans: 'はず' },
+  { q: '先生の___に、勉強しました。', options: ['ため', 'よう', 'そう', 'らしい'], ans: 'ため' }
+];
+
+const dokkaiData = [
+  {
+    img: '🐱🍙🐟',
+    text: 'ねこのタマは毎日、魚とおにぎりを食べます。でも、今日は魚がなかったので、おにぎりだけを食べました。タマは少し悲しそうでした。',
+    q: '今日のタマはどうして悲しそうでしたか。',
+    options: ['おにぎりがなかったから', '魚を食べなかったから', '毎日おにぎりを食べるから', '病気になったから'],
+    ans: '魚を食べなかったから'
+  },
+  {
+    img: '🚶‍♂️🌧️🌂',
+    text: '田中さんは朝、家を出る時、空が暗かったので傘を持っていきました。でも、夕方まで雨は降りませんでした。',
+    q: '田中さんはどうして傘を持っていきましたか。',
+    options: ['雨が降っていたから', '夕方雨が降るから', '空が暗かったから', '傘を買いたかったから'],
+    ans: '空が暗かったから'
+  },
+  {
+    img: '🎂🎉🎁',
+    text: '明日は母の誕生日です。私はケーキを作ってあげるつもりです。弟はきれいな花をプレゼントするそうです。',
+    q: '弟は何をしますか。',
+    options: ['ケーキを作る', 'ケーキを食べる', '花をプレゼントする', '花を買う'],
+    ans: '花をプレゼントする'
+  },
+  {
+    img: '🚌💨🏃‍♂️',
+    text: '山田さんは毎朝8時のバスに乗ります。今日は少し遅く起きたので、走ってバス停へ行きました。なんとか間に合いました。',
+    q: '山田さんは今日、バスに乗れましたか。',
+    options: ['はい、乗れました', 'いいえ、乗れませんでした', 'わかりません', 'バスが来ませんでした'],
+    ans: 'はい、乗れました'
+  },
+  {
+    img: '📚💤🐱',
+    text: '昨日の夜、漢字を勉強しながら寝てしまいました。朝起きたら、ノートの上に猫が寝ていました。',
+    q: '起きた時、ノートの上に何がありましたか。',
+    options: ['漢字', '鉛筆', '猫', '時計'],
+    ans: '猫'
+  }
+];
+
+// --- HELPER UNTUK ACAK ARRAY ---
+const shuffleArray = (array) => {
+  let shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
+
+// --- KOMPONEN UTAMA ---
+export default function App() {
+  const [activeTab, setActiveTab] = useState('home');
+  const [toastMsg, setToastMsg] = useState('');
+
+  const showToast = (msg) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(''), 3000);
+  };
+
+  return (
+    <div className="min-h-screen bg-pink-50 font-sans text-pink-900 pb-20">
+      {/* HEADER */}
+      <header className="bg-pink-300 p-4 shadow-md sticky top-0 z-50 rounded-b-3xl">
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
+          <h1 className="text-3xl font-extrabold text-white tracking-widest flex items-center gap-2 drop-shadow-md">
+            🐾 NEKO NIHONGO N4 🐾
+          </h1>
+          <div className="hidden md:flex gap-4">
+             {['home', 'kanji', 'bunpou', 'kotoba', 'game', 'quiz'].map(tab => (
+               <button
+                 key={tab}
+                 onClick={() => setActiveTab(tab)}
+                 className={`px-4 py-2 rounded-full font-bold transition-all ${activeTab === tab ? 'bg-white text-pink-500 shadow-inner' : 'bg-pink-400 text-white hover:bg-pink-200 hover:text-pink-600'}`}
+               >
+                 {tab.toUpperCase()}
+               </button>
+             ))}
+          </div>
+        </div>
+        {/* Mobile Navigation */}
+        <div className="md:hidden flex flex-wrap justify-center gap-2 mt-4">
+             {['home', 'kanji', 'bunpou', 'kotoba', 'game', 'quiz'].map(tab => (
+               <button
+                 key={tab}
+                 onClick={() => setActiveTab(tab)}
+                 className={`px-3 py-1 text-sm rounded-full font-bold transition-all ${activeTab === tab ? 'bg-white text-pink-500' : 'bg-pink-400 text-white'}`}
+               >
+                 {tab.toUpperCase()}
+               </button>
+             ))}
+        </div>
+      </header>
+
+      {/* TOAST NOTIFICATION */}
+      {toastMsg && (
+        <div className="fixed top-24 left-1/2 transform -translate-x-1/2 bg-white border-4 border-pink-400 text-pink-600 px-6 py-3 rounded-full shadow-xl z-50 font-bold text-lg flex items-center gap-2 animate-bounce">
+          😸 {toastMsg}
+        </div>
+      )}
+
+      {/* CONTENT AREA */}
+      <main className="max-w-4xl mx-auto mt-8 p-4">
+        {activeTab === 'home' && <HomeTab />}
+        {activeTab === 'kanji' && <KanjiTab />}
+        {activeTab === 'bunpou' && <BunpouTab />}
+        {activeTab === 'kotoba' && <KotobaTab />}
+        {activeTab === 'game' && <GameTab showToast={showToast} />}
+        {activeTab === 'quiz' && <QuizTab showToast={showToast} />}
+      </main>
+
+      {/* FLOATING NEKO */}
+      <div className="fixed bottom-4 right-4 text-6xl animate-pulse cursor-pointer hover:scale-110 transition-transform" title="Semangat belajarnya, Nya!">
+        🐱🎀
+      </div>
+    </div>
+  );
+}
+
+// --- TAB COMPONENTS ---
+
+const HomeTab = () => (
+  <div className="bg-white p-8 rounded-3xl shadow-lg border-4 border-pink-200 text-center">
+    <h2 className="text-4xl font-extrabold text-pink-500 mb-6">Selamat Datang di Neko Nihongo! 🌸</h2>
+    <div className="text-8xl mb-6">😻🍡🌸</div>
+    <p className="text-lg text-pink-700 leading-relaxed mb-4">
+      Belajar bahasa Jepang level N4 jadi lebih seru dan menggemaskan bersama <strong>Neko-sensei</strong>! 
+      Di sini kamu bisa belajar Kanji lengkap dengan mnemoniknya, Pola Kalimat (Bunpou), Kosakata (Kotoba), dan bermain game seru!
+    </p>
+    <p className="text-lg text-pink-700 font-bold bg-pink-100 p-4 rounded-xl inline-block">
+      Pilih menu di atas untuk mulai petualangan belajarmu, nyaa~ 🐾
+    </p>
+  </div>
+);
+
+const KanjiTab = () => (
+  <div>
+    <h2 className="text-3xl font-bold text-pink-600 mb-6 flex items-center gap-2">
+      📝 Kanji N4 Menggemaskan
+    </h2>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {kanjiData.map((k, i) => (
+        <div key={i} className="bg-white p-4 rounded-2xl shadow-md border-b-4 border-pink-300 hover:shadow-xl hover:-translate-y-1 transition-all group">
+          <div className="text-6xl text-center text-pink-500 font-serif mb-2">{k.kanji}</div>
+          <div className="text-center font-bold text-pink-700 mb-2">{k.meaning}</div>
+          <div className="text-sm text-gray-600 mb-1"><strong>On:</strong> {k.onyomi}</div>
+          <div className="text-sm text-gray-600 mb-2"><strong>Kun:</strong> {k.kunyomi}</div>
+          <div className="text-xs text-pink-600 bg-pink-50 p-2 rounded-lg italic border border-pink-100">
+            " {k.mnemonic} "
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const BunpouTab = () => (
+  <div>
+    <h2 className="text-3xl font-bold text-pink-600 mb-6 flex items-center gap-2">
+      📚 Bunpou (Tata Bahasa) N4
+    </h2>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {bunpouData.map((b, i) => (
+        <div key={i} className="bg-white p-5 rounded-2xl shadow-md border-l-8 border-pink-400 flex flex-col justify-center hover:bg-pink-50 transition-colors">
+          <div className="text-xl font-extrabold text-pink-600 mb-1">{b.pola}</div>
+          <div className="text-md font-bold text-pink-800 mb-2">Arti: {b.arti}</div>
+          <div className="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg border border-gray-200">
+            <strong>Contoh:</strong><br/>{b.contoh}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const KotobaTab = () => (
+  <div>
+    <h2 className="text-3xl font-bold text-pink-600 mb-6 flex items-center gap-2">
+      🍒 Kotoba (Kosakata) N4 Seru
+    </h2>
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {kotobaData.map((k, i) => (
+        <div key={i} className="bg-white p-4 rounded-3xl shadow-sm border-2 border-pink-200 text-center hover:bg-pink-100 hover:scale-105 transition-transform cursor-pointer">
+          <div className="text-5xl mb-3 drop-shadow-sm">{k.img}</div>
+          <div className="font-bold text-pink-800 text-lg">{k.jp}</div>
+          <div className="text-sm text-pink-600 mt-1">{k.arti}</div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+// --- GAME TAB: MEMORY CARD MATCHER ---
+const GameTab = ({ showToast }) => {
+  const [cards, setCards] = useState([]);
+  const [flipped, setFlipped] = useState([]);
+  const [solved, setSolved] = useState([]);
+  const [awaitingInput, setAwaitingInput] = useState(false);
+  const [matchData, setMatchData] = useState(null);
+  const [inputValue, setInputValue] = useState('');
+
+  // Setup game
+  useEffect(() => {
+    startNewGame();
+  }, []);
+
+  const startNewGame = () => {
+    // Ambil 8 pasang dari data Kanji (total 16 kartu)
+    const selected = shuffleArray(kanjiData).slice(0, 8);
+    let gameCards = [];
+    selected.forEach(k => {
+      gameCards.push({ ...k, id: Math.random() });
+      gameCards.push({ ...k, id: Math.random() });
+    });
+    setCards(shuffleArray(gameCards));
+    setFlipped([]);
+    setSolved([]);
+    setAwaitingInput(false);
+    setMatchData(null);
+  };
+
+  const handleCardClick = (index) => {
+    if (awaitingInput || flipped.length === 2 || flipped.includes(index) || solved.includes(index)) return;
+    
+    const newFlipped = [...flipped, index];
+    setFlipped(newFlipped);
+
+    if (newFlipped.length === 2) {
+      const card1 = cards[newFlipped[0]];
+      const card2 = cards[newFlipped[1]];
+      
+      if (card1.kanji === card2.kanji) {
+        // MATCH! Tanya hiragana/arti
+        setTimeout(() => {
+          setMatchData(card1);
+          setAwaitingInput(true);
+        }, 500);
+      } else {
+        // No Match
+        setTimeout(() => setFlipped([]), 1000);
+      }
+    }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const ans = inputValue.toLowerCase().trim();
+    // Validasi: kunyomi bisa ada titik (ex: おも.う), bersihkan titiknya. 
+    const cleanKunyomi = matchData.kunyomi.replace('.', '');
+    
+    if (ans === cleanKunyomi || ans === matchData.meaning.toLowerCase()) {
+      showToast('Benar sekali! Nyaaa~ 😻');
+      setSolved([...solved, ...flipped]);
+    } else {
+      showToast(`Salah meow! 😿 Jawaban yang benar: ${cleanKunyomi} atau ${matchData.meaning}`);
+    }
+    
+    setFlipped([]);
+    setAwaitingInput(false);
+    setMatchData(null);
+    setInputValue('');
+  };
+
+  return (
+    <div className="bg-white p-6 rounded-3xl shadow-lg border-4 border-pink-200">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-3xl font-bold text-pink-600 flex items-center gap-2">
+          🃏 Game Memori & Tebak Kanji
+        </h2>
+        <button onClick={startNewGame} className="bg-pink-400 text-white px-4 py-2 rounded-xl font-bold hover:bg-pink-500 shadow-md">
+          Mulai Ulang 🔄
+        </button>
+      </div>
+      
+      <p className="text-pink-700 mb-6 bg-pink-50 p-4 rounded-xl">
+        Cari dua kartu berpasangan. Kalau sama, Neko-sensei akan meminta kamu menebak hiragana (cara baca kunyomi) atau arti dari kanji tersebut!
+      </p>
+
+      {/* Grid Kartu */}
+      <div className="grid grid-cols-4 gap-4 mb-8">
+        {cards.map((c, i) => {
+          const isFlipped = flipped.includes(i) || solved.includes(i);
+          return (
+            <div 
+              key={c.id} 
+              onClick={() => handleCardClick(i)}
+              className={`h-24 md:h-32 flex items-center justify-center text-4xl md:text-5xl font-serif rounded-2xl cursor-pointer transition-all duration-300 transform ${isFlipped ? 'bg-pink-100 text-pink-600 border-2 border-pink-400 shadow-inner' : 'bg-pink-300 text-transparent hover:bg-pink-400 shadow-md'}`}
+            >
+              {isFlipped ? c.kanji : '🐾'}
+            </div>
+          )
+        })}
+      </div>
+
+      {solved.length === 16 && (
+        <div className="text-center p-6 bg-pink-100 rounded-2xl border-2 border-pink-400 mb-4 animate-bounce text-2xl font-bold text-pink-600">
+          🎉 SELAMAT! KAMU MENANG NYAA~ 🎉
+        </div>
+      )}
+
+      {/* Modal / Dialog Input */}
+      {awaitingInput && (
+        <div className="fixed inset-0 bg-pink-900 bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white p-8 rounded-3xl max-w-sm w-full shadow-2xl text-center border-4 border-pink-400">
+            <div className="text-6xl mb-4 text-pink-500">{matchData.kanji}</div>
+            <p className="font-bold text-pink-700 mb-4">Kartu cocok! Ketik bacaan Hiragana (tanpa titik) atau Artinya:</p>
+            <form onSubmit={handleSubmit}>
+              <input 
+                type="text"
+                autoFocus
+                className="w-full p-3 border-2 border-pink-300 rounded-xl mb-4 focus:outline-none focus:border-pink-500 text-center text-xl"
+                placeholder="cth: warui / buruk"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+              />
+              <button type="submit" className="w-full bg-pink-500 text-white font-bold py-3 rounded-xl hover:bg-pink-600 shadow-md">
+                Jawab 🐾
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// --- QUIZ TAB: MATCHING, ORDERING, FILL-BLANK, DOKKAI ---
+const QuizTab = ({ showToast }) => {
+  const [quizPhase, setQuizPhase] = useState('menu'); // menu, match, susun, rumpang, dokkai
+
+  return (
+    <div className="bg-white p-6 rounded-3xl shadow-lg border-4 border-pink-200">
+      <h2 className="text-3xl font-bold text-pink-600 mb-6 flex justify-between items-center">
+        <span>🏆 Arena Kuis N4</span>
+        {quizPhase !== 'menu' && (
+          <button onClick={() => setQuizPhase('menu')} className="text-sm bg-pink-200 px-3 py-1 rounded-full text-pink-700 hover:bg-pink-300">
+            Kembali ke Menu Kuis
+          </button>
+        )}
+      </h2>
+
+      {quizPhase === 'menu' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <button onClick={() => setQuizPhase('match')} className="p-8 bg-pink-100 rounded-3xl text-2xl font-bold text-pink-700 hover:bg-pink-200 hover:scale-105 transition-all shadow-md">
+            1. Jodohkan Kata (10) 🔗
+          </button>
+          <button onClick={() => setQuizPhase('susun')} className="p-8 bg-pink-100 rounded-3xl text-2xl font-bold text-pink-700 hover:bg-pink-200 hover:scale-105 transition-all shadow-md">
+            2. Susun Kalimat (5) 🧩
+          </button>
+          <button onClick={() => setQuizPhase('rumpang')} className="p-8 bg-pink-100 rounded-3xl text-2xl font-bold text-pink-700 hover:bg-pink-200 hover:scale-105 transition-all shadow-md">
+            3. Isi Rumpang (5) 📝
+          </button>
+          <button onClick={() => setQuizPhase('dokkai')} className="p-8 bg-pink-100 rounded-3xl text-2xl font-bold text-pink-700 hover:bg-pink-200 hover:scale-105 transition-all shadow-md">
+            4. Membaca/Dokkai (5) 📖
+          </button>
+        </div>
+      )}
+
+      {quizPhase === 'match' && <MatchQuiz showToast={showToast} />}
+      {quizPhase === 'susun' && <SusunQuiz showToast={showToast} />}
+      {quizPhase === 'rumpang' && <RumpangQuiz showToast={showToast} />}
+      {quizPhase === 'dokkai' && <DokkaiQuiz showToast={showToast} />}
+    </div>
+  );
+};
+
+// Sub-Kuis: Menjodohkan
+const MatchQuiz = ({ showToast }) => {
+  const [leftItems, setLeftItems] = useState([]);
+  const [rightItems, setRightItems] = useState([]);
+  const [selLeft, setSelLeft] = useState(null);
+  const [selRight, setSelRight] = useState(null);
+  const [matchedIds, setMatchedIds] = useState([]);
+
+  useEffect(() => {
+    setLeftItems(shuffleArray(matchQuizData));
+    setRightItems(shuffleArray(matchQuizAns));
+  }, []);
+
+  const handleSelectLeft = (item) => {
+    if (matchedIds.includes(item.id)) return;
+    setSelLeft(item);
+    checkMatch(item, selRight);
+  };
+
+  const handleSelectRight = (item) => {
+    if (matchedIds.includes(item.id)) return;
+    setSelRight(item);
+    checkMatch(selLeft, item);
+  };
+
+  const checkMatch = (left, right) => {
+    if (left && right) {
+      if (left.id === right.id) {
+        showToast('Cocok! Hebat! 😻');
+        setMatchedIds([...matchedIds, left.id]);
+        setSelLeft(null);
+        setSelRight(null);
+      } else {
+        showToast('Tetot! Kurang tepat 😿');
+        setSelLeft(null);
+        setSelRight(null);
+      }
+    }
+  };
+
+  return (
+    <div>
+      <p className="mb-4 text-pink-700 bg-pink-50 p-3 rounded-lg">Pilih kata bahasa Jepang di sebelah kiri dan artinya di sebelah kanan!</p>
+      <div className="flex gap-4">
+        {/* Kolom Kiri */}
+        <div className="flex-1 flex flex-col gap-2">
+          {leftItems.map(item => (
+            <button 
+              key={item.id} 
+              onClick={() => handleSelectLeft(item)}
+              className={`p-3 rounded-xl font-bold transition-colors ${matchedIds.includes(item.id) ? 'bg-green-200 text-green-800 opacity-50' : selLeft?.id === item.id ? 'bg-pink-500 text-white' : 'bg-pink-100 text-pink-800 hover:bg-pink-200'}`}
+              disabled={matchedIds.includes(item.id)}
+            >
+              {item.jp}
+            </button>
+          ))}
+        </div>
+        {/* Kolom Kanan */}
+        <div className="flex-1 flex flex-col gap-2">
+          {rightItems.map(item => (
+            <button 
+              key={item.id} 
+              onClick={() => handleSelectRight(item)}
+              className={`p-3 rounded-xl font-bold transition-colors ${matchedIds.includes(item.id) ? 'bg-green-200 text-green-800 opacity-50' : selRight?.id === item.id ? 'bg-blue-500 text-white' : 'bg-blue-100 text-blue-800 hover:bg-blue-200'}`}
+              disabled={matchedIds.includes(item.id)}
+            >
+              {item.arti}
+            </button>
+          ))}
+        </div>
+      </div>
+      {matchedIds.length === 10 && <div className="mt-6 text-center text-2xl text-pink-600 font-bold bg-pink-100 p-4 rounded-xl">Luar Biasa! Semua Berhasil Dijodohkan! 🎉</div>}
+    </div>
+  );
+};
+
+// Sub-Kuis: Susun Kalimat
+const SusunQuiz = ({ showToast }) => {
+  const [qIndex, setQIndex] = useState(0);
+  const [words, setWords] = useState([]);
+  const [answers, setAnswers] = useState([]);
+
+  const currentQ = susunData[qIndex];
+
+  useEffect(() => {
+    if (currentQ) {
+      setWords(shuffleArray(currentQ.words));
+      setAnswers([]);
+    }
+  }, [qIndex, currentQ]);
+
+  const addWord = (w, i) => {
+    setAnswers([...answers, w]);
+    setWords(words.filter((_, index) => index !== i));
+  };
+
+  const removeWord = (w, i) => {
+    setWords([...words, w]);
+    setAnswers(answers.filter((_, index) => index !== i));
+  };
+
+  const checkAnswer = () => {
+    if (answers.join('') === currentQ.correct) {
+      showToast('Tepat sekali! Nya~ 😺');
+      setTimeout(() => {
+        if (qIndex < susunData.length - 1) setQIndex(qIndex + 1);
+        else showToast('Selesai! Kamu jago menyusun kalimat! 🎉');
+      }, 1000);
+    } else {
+      showToast('Susunannya belum pas meow, coba lagi! 😿');
+      // Reset
+      setWords(shuffleArray(currentQ.words));
+      setAnswers([]);
+    }
+  };
+
+  if (qIndex >= susunData.length) return <div className="text-center p-8 bg-pink-100 rounded-xl text-2xl font-bold text-pink-600">Selamat! Kuis Susun Kalimat Selesai! 🌸</div>;
+
+  return (
+    <div className="bg-pink-50 p-6 rounded-2xl">
+      <div className="mb-2 text-pink-500 font-bold">Soal {qIndex + 1} / 5</div>
+      <p className="text-pink-800 mb-6 italic">" {currentQ.arti} "</p>
+      
+      {/* Kotak Jawaban */}
+      <div className="min-h-[60px] bg-white border-2 border-dashed border-pink-400 rounded-xl p-3 flex flex-wrap gap-2 mb-6 items-center">
+        {answers.length === 0 && <span className="text-gray-400">Klik kata di bawah untuk menyusun...</span>}
+        {answers.map((w, i) => (
+          <button key={i} onClick={() => removeWord(w, i)} className="bg-pink-400 text-white px-4 py-2 rounded-lg font-bold hover:bg-pink-500">
+            {w}
+          </button>
+        ))}
+      </div>
+
+      {/* Pilihan Kata */}
+      <div className="flex flex-wrap gap-2 mb-6">
+        {words.map((w, i) => (
+          <button key={i} onClick={() => addWord(w, i)} className="bg-white border-2 border-pink-300 text-pink-700 px-4 py-2 rounded-lg font-bold hover:bg-pink-100 shadow-sm">
+            {w}
+          </button>
+        ))}
+      </div>
+
+      <button onClick={checkAnswer} className="w-full bg-pink-500 text-white py-3 rounded-xl font-bold hover:bg-pink-600 shadow-md">
+        Cek Jawaban 🐾
+      </button>
+    </div>
+  );
+};
+
+// Sub-Kuis: Melengkapi Rumpang
+const RumpangQuiz = ({ showToast }) => {
+  const [qIndex, setQIndex] = useState(0);
+
+  const currentQ = rumpangData[qIndex];
+
+  const handleAns = (opt) => {
+    if (opt === currentQ.ans) {
+      showToast('Benar! Pintar! 😽');
+      if (qIndex < rumpangData.length - 1) setQIndex(qIndex + 1);
+      else showToast('Horee! Rumpang selesai! 🎉');
+    } else {
+      showToast('Kurang tepat, pilih yang lain nya~ 😿');
+    }
+  };
+
+  if (qIndex >= rumpangData.length) return <div className="text-center p-8 bg-pink-100 rounded-xl text-2xl font-bold text-pink-600">Selamat! Kuis Rumpang Selesai! 🌸</div>;
+
+  return (
+    <div className="bg-pink-50 p-6 rounded-2xl text-center">
+      <div className="mb-2 text-pink-500 font-bold">Soal {qIndex + 1} / 5</div>
+      <div className="text-2xl font-bold text-pink-800 mb-8 mt-4 bg-white p-6 rounded-xl shadow-sm border border-pink-200">
+        {currentQ.q.split('___').map((part, i) => (
+          <React.Fragment key={i}>
+            {part}
+            {i === 0 && <span className="inline-block w-16 border-b-4 border-pink-400 mx-2"></span>}
+          </React.Fragment>
+        ))}
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        {currentQ.options.map((opt, i) => (
+          <button key={i} onClick={() => handleAns(opt)} className="bg-white border-2 border-pink-300 text-pink-700 py-4 rounded-xl font-bold text-lg hover:bg-pink-400 hover:text-white transition-colors shadow-sm">
+            {opt}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Sub-Kuis: Dokkai
+const DokkaiQuiz = ({ showToast }) => {
+  const [qIndex, setQIndex] = useState(0);
+
+  const currentQ = dokkaiData[qIndex];
+
+  const handleAns = (opt) => {
+    if (opt === currentQ.ans) {
+      showToast('Jawaban Tepat! 😸');
+      if (qIndex < dokkaiData.length - 1) setQIndex(qIndex + 1);
+      else showToast('Selamat! Membaca N4 sudah selesai! 🎉');
+    } else {
+      showToast('Baca lagi dengan teliti nya~ 😿');
+    }
+  };
+
+  if (qIndex >= dokkaiData.length) return <div className="text-center p-8 bg-pink-100 rounded-xl text-2xl font-bold text-pink-600">Selamat! Kuis Dokkai Selesai! 🌸</div>;
+
+  return (
+    <div className="bg-pink-50 p-6 rounded-2xl">
+      <div className="mb-2 text-pink-500 font-bold">Membaca Soal {qIndex + 1} / 5</div>
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-pink-200 mb-6">
+        <div className="text-5xl text-center mb-4">{currentQ.img}</div>
+        <p className="text-lg text-gray-800 leading-loose mb-6 font-medium">{currentQ.text}</p>
+        <div className="bg-pink-100 p-4 rounded-lg text-pink-900 font-bold">
+          Q: {currentQ.q}
+        </div>
+      </div>
+      <div className="flex flex-col gap-3">
+        {currentQ.options.map((opt, i) => (
+          <button key={i} onClick={() => handleAns(opt)} className="text-left bg-white border-2 border-pink-200 text-pink-700 px-6 py-4 rounded-xl font-bold hover:bg-pink-300 hover:text-white transition-colors shadow-sm">
+            {String.fromCharCode(65 + i)}. {opt}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
